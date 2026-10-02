@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Activity;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreActivityRequest extends FormRequest
 {
@@ -15,10 +16,12 @@ class StoreActivityRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'code' => ['required', 'string', 'max:30', Rule::unique('activities', 'code')],
             'title' => ['required', 'string', 'min:5', 'max:100'],
             'description' => ['nullable', 'string', 'max:2000'],
             'activity_date' => ['required', 'date'],
-            'status' => ['required', 'in:'.implode(',', Activity::STATUSES)],
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
+            'status' => ['required', 'in:Draft'],
         ];
     }
 }

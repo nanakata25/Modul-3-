@@ -3,18 +3,22 @@
 namespace App\Services;
 
 use App\Models\Activity;
+use App\Models\Category;
 use Illuminate\Validation\ValidationException;
 
 class ActivityService
 {
     private const ALLOWED_TRANSITIONS = [
-        'Planned' => ['Planned', 'Ongoing'],
-        'Ongoing' => ['Ongoing', 'Done'],
-        'Done' => ['Done'],
+        'Draft' => ['Draft', 'Published'],
+        'Published' => ['Published', 'Completed'],
+        'Completed' => ['Completed'],
     ];
 
     public function create(array $attributes): Activity
     {
+        $attributes['category'] = Category::findOrFail($attributes['category_id'])->name;
+        $attributes['status'] = 'Draft';
+
         return Activity::create($attributes);
     }
 
@@ -28,6 +32,13 @@ class ActivityService
             ]);
         }
 
+        if ($nextStatus === 'Published' && blank($attributes['description'])) {
+            throw ValidationException::withMessages([
+                'description' => 'Deskripsi wajib diisi sebelum kegiatan dapat dipublikasikan.',
+            ]);
+        }
+
+        $attributes['category'] = Category::findOrFail($attributes['category_id'])->name;
         $activity->update($attributes);
 
         return $activity;
